@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moodboard Mixer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0a0f;
+      --surface: #141420;
+      --surface2: #1e1e30;
+      --border: #2a2a40;
+      --text: #e8e6f0;
+      --text2: #9896a8;
+      --accent: #c4a1ff;
+      --accent2: #ff7eb3;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+    /* ─── Top Bar ─── */
+    .topbar { display: flex; align-items: center; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--border); background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 100; }
+    .logo { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; cursor: pointer; flex-shrink: 0; }
+    .search-wrap { flex: 1; max-width: 400px; position: relative; }
+    .search-input { width: 100%; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .search-input:focus { border-color: var(--accent); }
+    .search-input::placeholder { color: #555; }
+    .dropdown { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; z-index: 50; display: none; }
+    .dropdown.open { display: block; }
+    .drop-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; font-size: 14px; color: var(--text); transition: background 0.15s; }
+    .drop-item:hover { background: var(--surface2); }
+    .drop-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .drop-none { padding: 14px; color: #555; font-size: 13px; text-align: center; }
+    .shuffle-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid rgba(196,161,255,0.2); background: transparent; color: var(--accent); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; flex-shrink: 0; transition: all 0.2s; display: none; }
+    .shuffle-btn:hover { background: var(--accent); color: var(--bg); }
+    .shuffle-btn.show { display: block; }
+
+    /* ─── Home ─── */
+    .home { padding: 48px 24px; max-width: 1100px; margin: 0 auto; }
+    .hero { text-align: center; margin-bottom: 48px; }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2), #7ee8fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; line-height: 1.2; }
+    .hero p { color: var(--text2); font-size: 17px; line-height: 1.6; }
+    .vibe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .vibe-card { height: 200px; border-radius: 16px; cursor: pointer; position: relative; overflow: hidden; transition: all 0.3s ease; background-size: cover; background-position: center; animation: fadeUp 0.5s ease both; }
+    .vibe-card:hover { transform: scale(1.03); }
+    .vibe-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.1) 60%); display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; }
+    .vibe-dots { display: flex; gap: 4px; margin-bottom: 8px; }
+    .vibe-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .vibe-card-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: #fff; }
+    .vibe-card-count { font-size: 12px; color: #bbb; margin-top: 4px; }
+
+    /* ─── Not Found ─── */
+    .not-found { text-align: center; padding: 80px 24px; max-width: 600px; margin: 0 auto; display: none; }
+    .not-found.show { display: block; }
+    .not-found h2 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 600; margin: 16px 0 8px; }
+    .not-found p { color: var(--text2); font-size: 15px; margin-bottom: 32px; }
+    .nf-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 32px; }
+    .nf-card { padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 14px; transition: all 0.2s; }
+    .nf-card:hover { border-color: var(--accent); }
+    .nf-swatch { width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0; }
+    .nf-btn { padding: 12px 28px; border-radius: 10px; border: none; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
+
+    /* ─── Vibe Page ─── */
+    .vibe-page { display: flex; height: calc(100vh - 53px); overflow: hidden; display: none; }
+    .vibe-page.show { display: flex; }
+
+    /* Left: Moodboard */
+    .mood-panel { flex: 1; overflow-y: auto; padding: 20px; }
+    .mood-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+    .back-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+    .back-btn:hover { border-color: var(--accent); }
+    .mood-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; flex: 1; }
+    .mood-dots { display: flex; gap: 6px; }
+    .mood-dot { width: 14px; height: 14px; border-radius: 50%; }
+    .masonry { column-count: 2; column-gap: 12px; }
+    .masonry-item { break-inside: avoid; margin-bottom: 12px; border-radius: 14px; overflow: hidden; background: var(--surface); transition: opacity 0.6s ease; }
+    .masonry-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* Right: Player */
+    .player-panel { width: 360px; border-left: 1px solid var(--border); background: #0d0d14; overflow-y: auto; flex-shrink: 0; }
+    .player-inner { padding: 20px 18px; }
+    .np-label { font-size: 10px; letter-spacing: 2px; color: #555; font-weight: 700; margin-bottom: 14px; text-align: center; }
+    .embed-wrap { margin-bottom: 20px; border-radius: 12px; overflow: hidden; }
+    .embed-wrap iframe { border-radius: 12px; }
+    .controls { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 24px; }
+    .ctrl-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: transparent; color: var(--text); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .ctrl-btn:hover { border-color: var(--accent); }
+    .vibe-shuf-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(196,161,255,0.3); background: transparent; color: var(--accent); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .vibe-shuf-btn:hover { background: var(--accent); color: var(--bg); }
+    .q-label { font-size: 10px; letter-spacing: 2px; color: #555; font-weight: 700; margin-bottom: 10px; }
+    .queue { display: flex; flex-direction: column; gap: 2px; }
+    .q-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+    .q-item:hover { background: #1a1a28; }
+    .q-item.active { background: var(--surface2); border-left: 3px solid var(--accent); }
+    .q-num { font-size: 12px; width: 18px; text-align: center; flex-shrink: 0; font-weight: 600; color: #555; }
+    .q-item.active .q-num { color: var(--accent); }
+    .q-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #aaa; }
+    .q-item.active .q-name { color: var(--text); }
+    .q-artist { font-size: 11px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .q-playing { color: var(--accent); animation: pulse 1.5s ease infinite; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 28px; }
+      .vibe-grid { grid-template-columns: repeat(2, 1fr); }
+      .vibe-page.show { flex-direction: column; }
+      .player-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); max-height: 50vh; }
+      .mood-panel { max-height: 50vh; }
+      .masonry { column-count: 2; }
+      .nf-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Top Bar ─── -->
+  <div class="topbar">
+    <div class="logo" onclick="goHome()">Moodboard Mixer</div>
+    <div class="search-wrap">
+      <input class="search-input" id="searchInput" placeholder="Search a vibe..." oninput="onSearch()" onkeydown="onSearchKey(event)" onfocus="openDropdown()" />
+      <div class="dropdown" id="dropdown"></div>
+    </div>
+    <button class="shuffle-btn" id="shuffleVibeBtn" onclick="shuffleVibe()">Shuffle Vibe</button>
+  </div>
+
+  <!-- ─── Home Page ─── -->
+  <div class="home" id="homePage">
+    <div class="hero">
+      <h1>Discover music through vibes</h1>
+      <p>Pick a mood. See the aesthetic. Hear the playlist.</p>
+    </div>
+    <div class="vibe-grid" id="vibeGrid"></div>
+  </div>
+
+  <!-- ─── Not Found ─── -->
+  <div class="not-found" id="notFoundPage">
+    <div style="font-size:48px">🔍</div>
+    <h2>We don't have that vibe yet</h2>
+    <p>But here are some you might like:</p>
+    <div class="nf-grid" id="nfGrid"></div>
+    <button class="nf-btn" onclick="goHome()">Explore all vibes</button>
+  </div>
+
+  <!-- ─── Vibe Page ─── -->
+  <div class="vibe-page" id="vibePage">
+    <div class="mood-panel" id="moodPanel">
+      <div class="mood-header">
+        <button class="back-btn" onclick="goHome()">← Back</button>
+        <div class="mood-title" id="moodTitle"></div>
+        <div class="mood-dots" id="moodDots"></div>
+      </div>
+      <div class="masonry" id="masonry"></div>
+    </div>
+    <div class="player-panel">
+      <div class="player-inner">
+        <div class="np-label">NOW PLAYING</div>
+        <div class="embed-wrap" id="embedWrap"></div>
+        <div class="controls">
+          <button class="ctrl-btn" onclick="skipTrack(-1)">⏮</button>
+          <button class="ctrl-btn" onclick="skipTrack(1)">⏭</button>
+          <button class="ctrl-btn" style="font-size:16px" onclick="shuffleTracks()">🔀</button>
+          <button class="vibe-shuf-btn" onclick="shuffleVibe()">New Vibe</button>
+        </div>
+        <div class="q-label">UP NEXT</div>
+        <div class="queue" id="queue"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ─── Vibe Data ───
+const VIBES = [
+  {
+    id: "autumn-blues", name: "Autumn Blues",
+    gradient: "linear-gradient(135deg, #8B4513cc, #D2691Ecc)",
+    images: [
+      "https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1520962880247-cfaf541c8724?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1477346611705-65d1883cee1e?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1439853949127-fa647821eba0?w=600&fit=crop",
+    ],
+    colors: ["#8B4513", "#D2691E", "#CD853F", "#2c1810"],
+    tracks: [
+      { id: "2QjOHCTQ1Jl3zawyYOpxh6", name: "Sweater Weather", artist: "The Neighbourhood" },
+      { id: "3hUxzQpSfdDqwM3ZTFQY0K", name: "Harvest Moon", artist: "Neil Young" },
+      { id: "4UG2nBMFn6JYiEABSmzlME", name: "Skinny Love", artist: "Bon Iver" },
+      { id: "7oaEjLP2dTJLJsITbAxTOz", name: "The Night We Met", artist: "Lord Huron" },
+      { id: "1cs3oSd1EGtL0hV5PoArlB", name: "Holocene", artist: "Bon Iver" },
+    ],
+  },
+  {
+    id: "late-night-drive", name: "Late Night Drive",
+    gradient: "linear-gradient(135deg, #1a0a2ecc, #5b2c8ecc)",
+    images: [
+      "https://images.unsplash.com/photo-1493238792000-8113da705763?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1504297050568-910d24c426d3?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1542332213-9b5a5a3fad35?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1470224114660-3f6686c562eb?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1444080748568-f2ae05f2b4cc?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1532074205216-d0e1f4b87368?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1475274047050-1d0c55b5b5a3?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=600&fit=crop",
+    ],
+    colors: ["#1a0a2e", "#5b2c8e", "#d63384", "#ff6b35"],
+    tracks: [
+      { id: "2fTdRdN73RgIgcUBgpOaKR", name: "Nightcall", artist: "Kavinsky" },
+      { id: "0VjIjW4GlUZAMYd2vXMi3b", name: "Blinding Lights", artist: "The Weeknd" },
+      { id: "6GyFP1nfCDB8lbD2bG0Hq9", name: "Midnight City", artist: "M83" },
+      { id: "2LMkwUfqEisAA3mphZsGOD", name: "After Dark", artist: "Mr.Kitty" },
+      { id: "6xGruZOHkvFGfl7LqHaDvR", name: "A Real Hero", artist: "College & Electric Youth" },
+    ],
+  },
+  {
+    id: "golden-hour", name: "Golden Hour",
+    gradient: "linear-gradient(135deg, #e8a87ccc, #d68c45cc)",
+    images: [
+      "https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1488330890490-c291ecf62571?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1465056836900-8f1e940f1a7d?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=600&fit=crop",
+    ],
+    colors: ["#e8a87c", "#d68c45", "#c67834", "#85603f"],
+    tracks: [
+      { id: "5GorFaKkP2mLREQvhSblKm", name: "Golden Hour", artist: "JVKE" },
+      { id: "6dGnYIeXmHdcikdzNNDMm2", name: "Here Comes The Sun", artist: "The Beatles" },
+      { id: "0ofHAoxe9vBkTCp2UQIavz", name: "Dreams", artist: "Fleetwood Mac" },
+      { id: "3KkXRkHbMCARz0aVfEt68P", name: "Sunflower", artist: "Post Malone" },
+      { id: "7yyRTcZmCiyzzJlNzGC9Ol", name: "Electric Feel", artist: "MGMT" },
+    ],
+  },
+  {
+    id: "coffee-shop", name: "Coffee Shop",
+    gradient: "linear-gradient(135deg, #3c2415cc, #6f4e37cc)",
+    images: [
+      "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1514432324607-a09d9b4aefda?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1498804103079-a6351b050096?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1459755486867-b55449bb39ff?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1507133750040-4a8f57021571?w=600&fit=crop",
+    ],
+    colors: ["#3c2415", "#6f4e37", "#a67b5b", "#d4b896"],
+    tracks: [
+      { id: "2dpaYNEQHiRxtZbfNsse99", name: "Put Your Records On", artist: "Corinne Bailey Rae" },
+      { id: "3nlte2KtKQHwyPOaOME458", name: "Banana Pancakes", artist: "Jack Johnson" },
+      { id: "4iV5W9uYEdYUVa79Axb7Rh", name: "Fly Me To The Moon", artist: "Frank Sinatra" },
+      { id: "3jjujdWJ72nww5eGnfs2E7", name: "La Vie en Rose", artist: "Louis Armstrong" },
+      { id: "1R0A2jcLkiJbUwCPdF7JFE", name: "Feeling Good", artist: "Nina Simone" },
+    ],
+  },
+  {
+    id: "rave", name: "Rave",
+    gradient: "linear-gradient(135deg, #ff006ecc, #8338eccc)",
+    images: [
+      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1504680177321-2e6a879aac86?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1571266028243-d220c6040cba?w=600&fit=crop",
+    ],
+    colors: ["#ff006e", "#8338ec", "#3a86ff", "#06d6a0"],
+    tracks: [
+      { id: "6or1bKJiZ06IlK0vFvY75k", name: "Titanium", artist: "David Guetta ft. Sia" },
+      { id: "0DiWol3AO6WpXZgp0goxAV", name: "Levels", artist: "Avicii" },
+      { id: "6Qyc6fS4KsRvMFkV7Crhtb", name: "Clarity", artist: "Zedd ft. Foxes" },
+      { id: "2bNCdBsbPkaLU3MRjSVKSp", name: "Don't You Worry Child", artist: "Swedish House Mafia" },
+      { id: "3MrRksHupTVEQ7YbA0FsZK", name: "Wake Me Up", artist: "Avicii" },
+    ],
+  },
+  {
+    id: "beach-day", name: "Beach Day",
+    gradient: "linear-gradient(135deg, #00b4d8cc, #ffd166cc)",
+    images: [
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1506953823645-5e1f03795c75?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1520942702018-0862200e6873?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1484542603127-984f4f7d14cb?w=600&fit=crop",
+    ],
+    colors: ["#00b4d8", "#0096c7", "#ffd166", "#f4a261"],
+    tracks: [
+      { id: "4LRPiXqCikLlN15c3yImP7", name: "Island In The Sun", artist: "Weezer" },
+      { id: "7hDVYcQq6MxkdJGweuoiMa", name: "Ocean Eyes", artist: "Billie Eilish" },
+      { id: "6RUKPb4LETWmmr3iAEQktW", name: "Kokomo", artist: "The Beach Boys" },
+      { id: "2Foc5Q5nqNiosCNqttzHof", name: "Get Lucky", artist: "Daft Punk" },
+      { id: "60nZcImufyMA1MKQY3dcCH", name: "Tongue Tied", artist: "Grouplove" },
+    ],
+  },
+  {
+    id: "rainy-day", name: "Rainy Day",
+    gradient: "linear-gradient(135deg, #4a6670cc, #7a9ba5cc)",
+    images: [
+      "https://images.unsplash.com/photo-1428592953211-077101b2021b?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1501691223387-dd0500403074?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1541919329513-35f7af297129?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1501621667575-af81f1f0bacc?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1437482078695-73f5ca6c96e2?w=600&fit=crop",
+    ],
+    colors: ["#4a6670", "#7a9ba5", "#b8d4dc", "#2c3e50"],
+    tracks: [
+      { id: "10nyNJ6zNy2YVYLrcw3zFe", name: "No Surprises", artist: "Radiohead" },
+      { id: "37Tmv4NnfQeb0ZgUC4fOJj", name: "Mad World", artist: "Gary Jules" },
+      { id: "4gMgiXfqyzZLMhsksGmbQV", name: "Another Love", artist: "Tom Odell" },
+      { id: "1cs3oSd1EGtL0hV5PoArlB", name: "Holocene", artist: "Bon Iver" },
+      { id: "4UG2nBMFn6JYiEABSmzlME", name: "Skinny Love", artist: "Bon Iver" },
+    ],
+  },
+  {
+    id: "midnight-feels", name: "Midnight Feels",
+    gradient: "linear-gradient(135deg, #0d0d0dcc, #533483cc)",
+    images: [
+      "https://images.unsplash.com/photo-1475274047050-1d0c55b5b5a3?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1444080748568-f2ae05f2b4cc?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1532074205216-d0e1f4b87368?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1488866022916-f7f2a032da17?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1536183922588-166604504d5e?w=600&fit=crop",
+    ],
+    colors: ["#0d0d0d", "#1a1a2e", "#2d2d44", "#533483"],
+    tracks: [
+      { id: "7oaEjLP2dTJLJsITbAxTOz", name: "The Night We Met", artist: "Lord Huron" },
+      { id: "3wuG07sPbELJMXCIiRcevq", name: "Space Song", artist: "Beach House" },
+      { id: "22LAwLoDA5b4AaGSkg6bKW", name: "Motion Sickness", artist: "Phoebe Bridgers" },
+      { id: "2dpaYNEQHiRxtZbfNsse99", name: "Ivy", artist: "Frank Ocean" },
+      { id: "4gMgiXfqyzZLMhsksGmbQV", name: "Another Love", artist: "Tom Odell" },
+    ],
+  },
+  {
+    id: "winter-sun", name: "Winter Sun",
+    gradient: "linear-gradient(135deg, #caf0f8cc, #0077b6cc)",
+    images: [
+      "https://images.unsplash.com/photo-1457269449834-928af64c684d?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1491002052546-bf38f186af56?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1418985991508-e47386d96a71?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1517299321609-52687d1bc55a?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1478265409131-1f65c88f965c?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1477601263568-180e2c6d046e?w=600&fit=crop",
+    ],
+    colors: ["#caf0f8", "#90e0ef", "#48bfe3", "#0077b6"],
+    tracks: [
+      { id: "1YrnDTqvcnUKxAIeXyaEmU", name: "White Winter Hymnal", artist: "Fleet Foxes" },
+      { id: "7LVHVU3tWfcxj5aiPFEW4Q", name: "Fix You", artist: "Coldplay" },
+      { id: "0pqnGHJpmpxLKifKRmU6WP", name: "Skinny Love", artist: "Birdy" },
+      { id: "3AJwUDP919kvQ9QcozQPxg", name: "Yellow", artist: "Coldplay" },
+      { id: "4aebBr4JAihzJQR0CiIZJv", name: "Retrograde", artist: "James Blake" },
+    ],
+  },
+  {
+    id: "90s-nostalgia", name: "90s Nostalgia",
+    gradient: "linear-gradient(135deg, #d4a373cc, #264653cc)",
+    images: [
+      "https://images.unsplash.com/photo-1525268323446-0505b6fe7778?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1535016120720-40c646be5580?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1527631746610-bca00a040d60?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1542295669297-4d352b042bca?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1485846147870-340837d2aabd?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&fit=crop",
+    ],
+    colors: ["#d4a373", "#e9c46a", "#2a9d8f", "#264653"],
+    tracks: [
+      { id: "1hKdDCpiI9mqz1jVHRKG0E", name: "Wonderwall", artist: "Oasis" },
+      { id: "3EYOJ4iBOk8sEuiMjDpE49", name: "No Diggity", artist: "Blackstreet" },
+      { id: "2m1hi0nfMR9vdGC8UcrnwU", name: "Creep", artist: "Radiohead" },
+      { id: "57JVGBtBLCfHw2muk5416J", name: "Bitter Sweet Symphony", artist: "The Verve" },
+      { id: "1Cwn1YMWJokXJRBaVx9WPZ", name: "Waterfalls", artist: "TLC" },
+    ],
+  },
+  {
+    id: "forest-escape", name: "Forest Escape",
+    gradient: "linear-gradient(135deg, #2d5016cc, #a8d08dcc)",
+    images: [
+      "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1476231682828-37e571bc172f?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1425913397330-cf8af2ff40a1?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1518173946687-a540326230b0?w=600&fit=crop",
+    ],
+    colors: ["#2d5016", "#4a7c23", "#6da544", "#a8d08d"],
+    tracks: [
+      { id: "1cs3oSd1EGtL0hV5PoArlB", name: "Holocene", artist: "Bon Iver" },
+      { id: "1YrnDTqvcnUKxAIeXyaEmU", name: "White Winter Hymnal", artist: "Fleet Foxes" },
+      { id: "4UG2nBMFn6JYiEABSmzlME", name: "Skinny Love", artist: "Bon Iver" },
+      { id: "0pqnGHJpmpxLKifKRmU6WP", name: "Skinny Love", artist: "Birdy" },
+      { id: "3MODES4TNtygekLl146Dxd", name: "Everybody Hurts", artist: "R.E.M." },
+    ],
+  },
+  {
+    id: "sunday-morning", name: "Sunday Morning",
+    gradient: "linear-gradient(135deg, #fce4eccc, #ec407acc)",
+    images: [
+      "https://images.unsplash.com/photo-1495214783159-3503fd1b572d?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1496861083958-175bb1bd5702?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1489844097929-c8d5b91c456e?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&fit=crop",
+    ],
+    colors: ["#fce4ec", "#f8bbd0", "#f48fb1", "#ec407a"],
+    tracks: [
+      { id: "3YRCqOhFifThpSRFJ1VWFM", name: "Sunday Morning", artist: "Maroon 5" },
+      { id: "5mCPDVBb16Ib35Mq5bUHS4", name: "Best Part", artist: "Daniel Caesar ft. H.E.R." },
+      { id: "6dGnYIeXmHdcikdzNNDMm2", name: "Here Comes The Sun", artist: "The Beatles" },
+      { id: "3nlte2KtKQHwyPOaOME458", name: "Banana Pancakes", artist: "Jack Johnson" },
+      { id: "1R0A2jcLkiJbUwCPdF7JFE", name: "Feeling Good", artist: "Nina Simone" },
+    ],
+  },
+  {
+    id: "city-lights", name: "City Lights",
+    gradient: "linear-gradient(135deg, #141414cc, #f5a623cc)",
+    images: [
+      "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1444723121867-7a241cacace9?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600&fit=crop",
+      "https://images.unsplash.com/photo-1519999482648-25049ddd37b1?w=600&fit=crop",
+    ],
+    colors: ["#141414", "#333", "#f5a623", "#e8d5b7"],
+    tracks: [
+      { id: "2igwFfvr1OAGX9SKDCPBwO", name: "Empire State of Mind", artist: "JAY-Z ft. Alicia Keys" },
+      { id: "32OlwWuMpZ6b0aN2RZOeMS", name: "Uptown Funk", artist: "Bruno Mars" },
+      { id: "1mea3bSkSGXuIRvnydlB5b", name: "Viva la Vida", artist: "Coldplay" },
+      { id: "3AJwUDP919kvQ9QcozQPxg", name: "Yellow", artist: "Coldplay" },
+      { id: "4gMgiXfqyzZLMhsksGmbQV", name: "Another Love", artist: "Tom Odell" },
+    ],
+  },
+];
+
+// ─── State ───
+let currentVibe = null;
+let currentTrackIdx = 0;
+
+// ─── Init ───
+function init() {
+  renderHome();
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-wrap')) {
+      document.getElementById('dropdown').classList.remove('open');
+    }
+  });
+}
+
+// ─── Render Home ───
+function renderHome() {
+  const grid = document.getElementById('vibeGrid');
+  grid.innerHTML = VIBES.map((v, i) => `
+    <div class="vibe-card" style="background-image: url(${v.images[0]}); animation-delay: ${i * 0.04}s" onclick="selectVibe('${v.id}')">
+      <div class="vibe-card-overlay">
+        <div class="vibe-dots">${v.colors.map(c => `<div class="vibe-dot" style="background:${c}"></div>`).join('')}</div>
+        <span class="vibe-card-name">${v.name}</span>
+        <span class="vibe-card-count">${v.tracks.length} tracks</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── Navigation ───
+function showPage(page) {
+  document.getElementById('homePage').style.display = page === 'home' ? 'block' : 'none';
+  document.getElementById('notFoundPage').classList.toggle('show', page === 'notfound');
+  document.getElementById('vibePage').classList.toggle('show', page === 'vibe');
+  document.getElementById('shuffleVibeBtn').classList.toggle('show', page === 'vibe');
+}
+
+function goHome() {
+  currentVibe = null;
+  showPage('home');
+  document.getElementById('searchInput').value = '';
+}
+
+// ─── Select Vibe ───
+function selectVibe(id) {
+  const vibe = VIBES.find(v => v.id === id);
+  if (!vibe) return;
+  currentVibe = vibe;
+  currentTrackIdx = 0;
+  showPage('vibe');
+  renderVibePage();
+}
+
+// ─── Render Vibe Page ───
+function renderVibePage() {
+  if (!currentVibe) return;
+
+  document.getElementById('moodTitle').textContent = currentVibe.name;
+  document.getElementById('moodDots').innerHTML = currentVibe.colors.map(c => `<div class="mood-dot" style="background:${c}"></div>`).join('');
+
+  // Masonry images
+  const heights = [240, 300, 220, 280, 260, 320, 230, 270];
+  document.getElementById('masonry').innerHTML = currentVibe.images.map((img, i) => `
+    <div class="masonry-item" style="height:${heights[i % 8]}px">
+      <img class="masonry-img" src="${img}" alt="" onerror="this.style.display='none'; this.parentElement.style.background='${currentVibe.colors[i % 4]}'" />
+    </div>
+  `).join('');
+
+  // Spotify embed
+  updateEmbed();
+
+  // Queue
+  renderQueue();
+
+  // Scroll to top
+  document.getElementById('moodPanel').scrollTop = 0;
+}
+
+function updateEmbed() {
+  if (!currentVibe) return;
+  const track = currentVibe.tracks[currentTrackIdx];
+  document.getElementById('embedWrap').innerHTML = `
+    <iframe src="https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0"
+      width="100%" height="152" frameBorder="0"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy" style="border-radius:12px"></iframe>
+  `;
+}
+
+function renderQueue() {
+  if (!currentVibe) return;
+  document.getElementById('queue').innerHTML = currentVibe.tracks.map((t, i) => `
+    <div class="q-item ${i === currentTrackIdx ? 'active' : ''}" onclick="selectTrack(${i})">
+      <div class="q-num">${i + 1}</div>
+      <div style="flex:1;min-width:0;overflow:hidden">
+        <div class="q-name">${t.name}</div>
+        <div class="q-artist">${t.artist}</div>
+      </div>
+      ${i === currentTrackIdx ? '<div class="q-playing">♪</div>' : ''}
+    </div>
+  `).join('');
+}
+
+// ─── Player Controls ───
+function selectTrack(idx) {
+  currentTrackIdx = idx;
+  updateEmbed();
+  renderQueue();
+}
+
+function skipTrack(dir) {
+  if (!currentVibe) return;
+  const len = currentVibe.tracks.length;
+  currentTrackIdx = (currentTrackIdx + dir + len) % len;
+  updateEmbed();
+  renderQueue();
+}
+
+function shuffleTracks() {
+  if (!currentVibe) return;
+  currentTrackIdx = Math.floor(Math.random() * currentVibe.tracks.length);
+  updateEmbed();
+  renderQueue();
+}
+
+function shuffleVibe() {
+  const others = VIBES.filter(v => v.id !== currentVibe?.id);
+  const random = others[Math.floor(Math.random() * others.length)];
+  selectVibe(random.id);
+}
+
+// ─── Search ───
+function onSearch() {
+  const val = document.getElementById('searchInput').value.trim().toLowerCase();
+  const dropdown = document.getElementById('dropdown');
+
+  if (!val) { dropdown.classList.remove('open'); return; }
+
+  const matches = VIBES.filter(v => v.name.toLowerCase().includes(val));
+  dropdown.classList.add('open');
+
+  if (matches.length > 0) {
+    dropdown.innerHTML = matches.slice(0, 6).map(v => `
+      <div class="drop-item" onmousedown="selectVibe('${v.id}')">
+        <div class="drop-dot" style="background:${v.colors[0]}"></div>
+        ${v.name}
+      </div>
+    `).join('');
+  } else {
+    dropdown.innerHTML = '<div class="drop-none">No matching vibes</div>';
+  }
+}
+
+function onSearchKey(e) {
+  if (e.key === 'Enter') {
+    const val = document.getElementById('searchInput').value.trim().toLowerCase();
+    if (!val) return;
+    const match = VIBES.find(v => v.name.toLowerCase().includes(val));
+    if (match) {
+      selectVibe(match.id);
+    } else {
+      showNotFound();
+    }
+    document.getElementById('dropdown').classList.remove('open');
+  }
+}
+
+function openDropdown() {
+  const val = document.getElementById('searchInput').value.trim();
+  if (val) onSearch();
+}
+
+function showNotFound() {
+  currentVibe = null;
+  showPage('notfound');
+
+  const shuffled = [...VIBES].sort(() => Math.random() - 0.5).slice(0, 6);
+  document.getElementById('nfGrid').innerHTML = shuffled.map(v => `
+    <div class="nf-card" onclick="selectVibe('${v.id}')">
+      <div class="nf-swatch" style="background:${v.gradient}"></div>
+      <span>${v.name}</span>
+    </div>
+  `).join('');
+}
+
+// ─── Go ───
+init();
+</script>
+</body>
+</html>
