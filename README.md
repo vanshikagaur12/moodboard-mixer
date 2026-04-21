@@ -8,7 +8,7 @@ Built with HTML, CSS, and JavaScript. Uses Spotify embeds for in-app music playb
 
 1. Clone this repo:
    ```
-   git clone https://github.com/YOUR_USERNAME/moodboard-mixer.git
+   git clone https://github.com/vanshikagaur12/moodboard-mixer.git
    cd moodboard-mixer
    ```
 
@@ -19,16 +19,9 @@ Built with HTML, CSS, and JavaScript. Uses Spotify embeds for in-app music playb
    open index.html
    ```
 
-## How to Deploy (Render)
+## Live Site
 
-1. Push this repo to GitHub
-2. Go to [render.com](https://render.com) and sign in with GitHub
-3. Click "New" > "Static Site"
-4. Connect your `moodboard-mixer` repo
-5. Set the publish directory to `.` (just a dot)
-6. Click "Create Static Site"
-
-Your app will be live at a `.onrender.com` URL in about a minute.
+The app is deployed on GitHub Pages: https://vanshikagaur12.github.io/moodboard-mixer/
 
 ## Features
 
